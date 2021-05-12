@@ -7,6 +7,7 @@ from os.path import dirname, abspath
 project_name = dirname(abspath(__file__)).split('\\')[-1]
 
 import sys
+import types
 import pickle
 import importlib
 from hyperopt import space_eval
@@ -18,21 +19,23 @@ for module in to_import:
 ################################################################################
 
 import numpy as np
-
+from sklearn.metrics import f1_score
 import logging
 logger = logging.getLogger('pipeline')
 
 from sklearn import metrics
 import joblib
+flatten = lambda t: [item for sublist in t for item in sublist]
 
 class SklearnModel1:
     @modelutils.catch('SKELARNMODEL_INITERROR')
     def __init__(self, **hparams):
-
+        
+        print(f'sklearn_model hparameters: {hparams}')
         self.model = hparams.pop('model_class', None)
         self.model_class = self.model
         self.minimize_metric = hparams.pop('minimize_metric', True)
-
+        
         if self.model is not None:
             self.model = self.model(**hparams)
 
@@ -43,12 +46,17 @@ class SklearnModel1:
         X_train, y_train = x['train_data']
         X_val, y_val = x['val_data']
         
-        try:
+        if isinstance(X_train, types.FunctionType):
+            X_train = X_train()
+        if isinstance(y_train, types.FunctionType):
+            y_train = y_train()
+
+        """try:
             y_train = np.array(y_train.todense()).ravel()
             y_val = np.array(y_val.todense()).ravel()
         except:
             y_train = np.array(y_train).ravel()
-            y_val = np.array(y_val).ravel()
+            y_val = np.array(y_val).ravel()"""
         
         try:
             self.model.fit(X_train, y_train)
@@ -57,7 +65,12 @@ class SklearnModel1:
             logger.info(f"SVM error, returning 0.")
             return {'metric': 0.0}
         
-        metric = self.model.score(X_val, y_val)
+        y_pred = self.model.predict(X_val)
+        try:
+            metric = f1_score(y_val, y_pred, average='binary')
+        except:
+            metric = f1_score(flatten(y_val), flatten(y_pred), average='binary', pos_label = '1')
+        #self.model.score(X_val, y_val)
         
         logger.info(f"Metric: {metric}")
         return {'metric': metric}
