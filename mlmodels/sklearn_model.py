@@ -27,6 +27,23 @@ from sklearn import metrics
 import joblib
 flatten = lambda t: [item for sublist in t for item in sublist]
 
+def calc_score(y_true, y_pred, beta=0.5):
+    TP = 0
+    FP = 0
+    FN = 0
+    for i in range(len(y_true)):
+        y_true_i = y_true[i]
+        y_pred_i = y_pred[i]
+        FP += len(y_pred_i)
+        for j in range(len(y_true_i)):
+            if y_true_i[j] in y_pred_i:
+                TP += 1
+                FP -= 1
+            else:
+                FN += 1
+    F_beta = (1+beta**2)*TP/((1+beta**2)*TP + beta**2*FN + FP)
+    return F_beta
+
 class SklearnModel1:
     @modelutils.catch('SKELARNMODEL_INITERROR')
     def __init__(self, **hparams):
@@ -50,6 +67,10 @@ class SklearnModel1:
             X_train = X_train()
         if isinstance(y_train, types.FunctionType):
             y_train = y_train()
+        if isinstance(X_val, types.FunctionType):
+            X_val = X_val()
+        if isinstance(y_val, types.FunctionType):
+            y_val = y_val()
 
         """try:
             y_train = np.array(y_train.todense()).ravel()
@@ -69,7 +90,8 @@ class SklearnModel1:
         try:
             metric = f1_score(y_val, y_pred, average='binary')
         except:
-            metric = f1_score(flatten(y_val), flatten(y_pred), average='binary', pos_label = '1')
+            metric = calc_score(flatten(y_val), flatten(y_pred))
+        #metric = f1_score(flatten(y_val), flatten(y_pred), average='binary', pos_label = '1')
         #self.model.score(X_val, y_val)
         
         logger.info(f"Metric: {metric}")
