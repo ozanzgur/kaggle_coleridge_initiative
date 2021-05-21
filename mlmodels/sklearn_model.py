@@ -24,25 +24,12 @@ import logging
 logger = logging.getLogger('pipeline')
 
 from sklearn import metrics
+from sklearn.metrics import f1_score
 import joblib
 flatten = lambda t: [item for sublist in t for item in sublist]
 
-def calc_score(y_true, y_pred, beta=0.5):
-    TP = 0
-    FP = 0
-    FN = 0
-    for i in range(len(y_true)):
-        y_true_i = y_true[i]
-        y_pred_i = y_pred[i]
-        FP += len(y_pred_i)
-        for j in range(len(y_true_i)):
-            if y_true_i[j] in y_pred_i:
-                TP += 1
-                FP -= 1
-            else:
-                FN += 1
-    F_beta = (1+beta**2)*TP/((1+beta**2)*TP + beta**2*FN + FP)
-    return F_beta
+def calc_score(y_true, y_pred):
+    return f1_score(y_true, y_pred, pos_label= '1', average= 'binary')
 
 class SklearnModel1:
     @modelutils.catch('SKELARNMODEL_INITERROR')
@@ -87,10 +74,7 @@ class SklearnModel1:
             return {'metric': 0.0}
         
         y_pred = self.model.predict(X_val)
-        try:
-            metric = f1_score(y_val, y_pred, average='binary')
-        except:
-            metric = calc_score(flatten(y_val), flatten(y_pred))
+        metric = calc_score(flatten(y_val), flatten(y_pred))
         #metric = f1_score(flatten(y_val), flatten(y_pred), average='binary', pos_label = '1')
         #self.model.score(X_val, y_val)
         

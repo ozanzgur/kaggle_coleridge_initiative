@@ -100,11 +100,9 @@ class DocGetter(object):
         self.grouped = self.data.groupby('FILENAME').apply(agg_func)
         self.docs = [s for s in self.grouped]
 
-def _text2features(text):
-    """Returns a list of examples.
-    """
+"""def _text2features(text):
     #words = wordpunct_tokenize(text)
-    return [_word2features(words, i) for i in range(len(words))]
+    return [_word2features(words, i) for i in range(len(words))]"""
 
 def _df2features(df):
     """Returns a list of examples.
@@ -163,33 +161,33 @@ def _word2features(words, i):
     # If all digits
     if word.isdigit():
         features.update({
-            'isd': True,
-            'dct': digit_count,
-            '4dg': digit_count == 4,
-            'dgr': 1.0,
-            'len': length
+            'd': True,
+            'dc': digit_count,
+            '4d': digit_count == 4,
+            'dg': 1.0,
+            'l': length
         })
     else: # Not all digit
         features.update({
-            'isd': False,
-            'dgr': digit_count / length,
-            'dct': digit_count,
-            'len': length,
-            'wor': word.lower(),
-            'up': word[0].isupper()
+            'd': False,
+            'dg': digit_count / length,
+            'dc': digit_count,
+            'l': length,
+            'w': word.lower(),
+            'u': word[0].isupper()
         })#'pnc': np.mean(np.array([c in puncs for c in word]))
 
     if i > 0:
         word_other = words[i-1][0]
         features.update({
             '-1': word_other.lower(),
-            '-1up': word_other[0].isupper()
+            '-1u': word_other[0].isupper()
         })
         if i > 1:
             word_other = words[i-2][0]
             features.update({
                 '-2': word_other.lower(),
-                #'-2:word.isupper()': word2.isupper()
+                '-2u': word_other[0].isupper()
             })
             if i > 2:
                 word_other = words[i-3][0]
@@ -213,20 +211,18 @@ def _word2features(words, i):
                             features.update({
                                 '-6': word_other.lower()
                             })
-                            
-    else:
-        features['BOS'] = True
+
     if i < len(words)-1:
         word_other = words[i+1][0]
         features.update({
             '+1':  word_other.lower(),
-            '+1up': word_other[0].isupper()
+            '+1u': word_other[0].isupper()
         })
         if i < len(words)-2:
             word_other = words[i+2][0]
             features.update({
                 '+2':  word_other.lower(),
-                #'+2:word.isupper()': word2.isupper()
+                '+2u': word_other[0].isupper()
             })
             if i < len(words)-3:
                 word_other = words[i+3][0]
@@ -242,9 +238,6 @@ def _word2features(words, i):
                         #'+4:word.isupper()': word_other.isupper()
                     })
         
-        
-    else:
-        features['EOS'] = True
     return features
 
 def _doc2features(doc):
