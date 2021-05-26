@@ -6,6 +6,7 @@ from utils import load_doc
 class MyLoaderDataset(Dataset):
     def __init__(self, filenames, word_vocab, label_vocab, alphabet, number_normalized, augment_chance = 0.0):
         self.filenames = filenames
+        self.augment_chance = augment_chance
 
         self.word_vocab = word_vocab
         self.label_vocab = label_vocab
@@ -19,7 +20,7 @@ class MyLoaderDataset(Dataset):
         text_id = []
         label_id = []
 
-        text, label = load_doc(self.filenames[item])
+        text, label = load_doc(self.filenames[item], self.augment_chance)
         if self.number_normalized:
             text = [normalize_word(word) for word in text]
 

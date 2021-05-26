@@ -14,7 +14,7 @@ def normalize_word(word):
 
 
 class WordVocabulary(object):
-    def __init__(self, train_path, dev_path, test_path, number_normalized):
+    def __init__(self, filenames, number_normalized):
         self.number_normalized = number_normalized
         self._id_to_word = []
         self._word_to_id = {}
@@ -30,9 +30,9 @@ class WordVocabulary(object):
         self._word_to_id['<UNK>'] = self.index
         self._unk = self.index
         self.index += 1
-
-        with open(train_path, 'r', encoding='utf-8') as f1:
-            lines = f1.readlines()
+        
+        for doc_id in filenames:
+            lines, label = load_doc(self.filenames[item])
             for line in lines:
                 if len(line) > 2:
                     pairs = line.strip().split()
@@ -44,22 +44,8 @@ class WordVocabulary(object):
                         self._word_to_id[word] = self.index
                         self.index += 1
 
-        with open(dev_path, 'r', encoding='utf-8') as f2:
-            lines = f2.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
-                    if self.number_normalized:
-                        word = normalize_word(word)
-                    if word not in self._word_to_id:
-                        self._id_to_word.append(word)
-                        self._word_to_id[word] = self.index
-                        self.index += 1
-
-        with open(test_path, 'r', encoding='utf-8') as f3:
-            lines = f3.readlines()
-            for line in lines:
+        lines = us_dataset_names
+        for line in lines:
                 if len(line) > 2:
                     pairs = line.strip().split()
                     word = pairs[0]

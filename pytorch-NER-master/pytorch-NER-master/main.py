@@ -27,7 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--pretrain_embed_path', default='data/glove.6B.100d.txt')
     parser.add_argument('--savedir', default='data/model/')
-    parser.add_argument('--batch_size', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=15)
     parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument('--optimizer', default='sgd')
     parser.add_argument('--lr', type=float, default=0.015)
@@ -77,8 +77,8 @@ if __name__ == '__main__':
     eval_temp = os.path.join(eval_path, "temp")
     eval_script = os.path.join(eval_path, "conlleval")
 
-    if not os.path.isfile(eval_script):
-        raise Exception('CoNLL evaluation script not found at "%s"' % eval_script)
+    """if not os.path.isfile(eval_script):
+        raise Exception('CoNLL evaluation script not found at "%s"' % eval_script)"""
     if not os.path.exists(eval_temp):
         os.makedirs(eval_temp)
 
@@ -88,9 +88,9 @@ if __name__ == '__main__':
     model_name = args.savedir + '/' + args.feature_extractor + str(args.use_char) + str(args.use_crf)
 
     print('Preparing vocabularies...')
-    word_vocab = WordVocabulary(args.train_path, args.dev_path, args.test_path, args.number_normalized, args.save_vocabularies)
+    word_vocab = WordVocabulary(docIdx, args.number_normalized, args.save_vocabularies)
     label_vocab = LabelVocabulary(args.train_path, args.save_vocabularies)
-    alphabet = Alphabet(args.train_path, args.dev_path, args.test_path, args.save_vocabularies)
+    alphabet = Alphabet(docIdx, args.save_vocabularies)
 
     print('Building pretrain embedding...')
     emb_begin = time.time()

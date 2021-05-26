@@ -5,6 +5,7 @@ import pickle
 import pandas as pd
 import random
 import re
+from tqdm import tqdm
 
 _RE_COMBINE_WHITESPACE = re.compile(r"\s+")
 def make_single_whitespace(text):
@@ -14,10 +15,9 @@ def remove_punc(txt):
     return re.sub('[^A-Za-z0-9]+', ' ', str(txt))
 
 # Load dataset names
-with open('C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/dataset_names.txt', 'r', encoding="utf-8") as f:
-    us_dataset_names = f.readlines()
-    us_dataset_names = [n for n in us_dataset_names if len(n) > 25]
-    us_dataset_names = [make_single_whitespace(remove_punc(n)) for n in us_dataset_names]
+df = pd.read_csv('C:\projects\personal\kaggle\kaggle_coleridge_initiative\data\data_set_26897.csv')
+us_dataset_names = list(df.title.values)
+us_dataset_names = [make_single_whitespace(remove_punc(n)).lower() for n in us_dataset_names]
 
 def replace_target(x, lst):
     if x.TARGET.iloc[0] == '0':
@@ -52,6 +52,7 @@ def load_doc(doc_id, augment_chance = 0.0):
 
     # Convert to string
     tokens = list(doc_df.TOKEN.values)
+    tokens = [t.lower() for t in tokens]
     labels = list(doc_df.TARGET.values)
     return tokens, labels
 
@@ -78,7 +79,7 @@ def normalize_word(word):
     return new_word
 
 class WordVocabulary(object):
-    def __init__(self, train_path, dev_path, test_path, number_normalized, save = False):
+    def __init__(self, doc_idx, number_normalized, save = False):
         self.number_normalized = number_normalized
         self._id_to_word = []
         self._word_to_id = {}
@@ -95,44 +96,26 @@ class WordVocabulary(object):
         self._unk = self.index
         self.index += 1
 
-        with open(train_path, 'r', encoding='utf-8') as f1:
-            lines = f1.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
-                    if self.number_normalized:
-                        word = normalize_word(word)
-                    if word not in self._word_to_id:
-                        self._id_to_word.append(word)
-                        self._word_to_id[word] = self.index
-                        self.index += 1
+        for doc_id in tqdm(doc_idx):
+            lines, _ = load_doc(doc_id)
+            for word in lines:
+                if self.number_normalized:
+                    word = normalize_word(word)
+                if word not in self._word_to_id:
+                    self._id_to_word.append(word)
+                    self._word_to_id[word] = self.index
+                    self.index += 1
 
-        with open(dev_path, 'r', encoding='utf-8') as f2:
-            lines = f2.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
-                    if self.number_normalized:
-                        word = normalize_word(word)
-                    if word not in self._word_to_id:
-                        self._id_to_word.append(word)
-                        self._word_to_id[word] = self.index
-                        self.index += 1
-
-        with open(test_path, 'r', encoding='utf-8') as f3:
-            lines = f3.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
-                    if self.number_normalized:
-                        word = normalize_word(word)
-                    if word not in self._word_to_id:
-                        self._id_to_word.append(word)
-                        self._word_to_id[word] = self.index
-                        self.index += 1
+        lines = us_dataset_names
+        for line in lines:
+            words = line.strip().split(' ')
+            for word in words:
+                if self.number_normalized:
+                    word = normalize_word(word)
+                if word not in self._word_to_id:
+                    self._id_to_word.append(word)
+                    self._word_to_id[word] = self.index
+                    self.index += 1
         
         if save:
             print('Saving WordVocabulary')
@@ -213,7 +196,7 @@ class LabelVocabulary(object):
 
 
 class Alphabet(object):
-    def __init__(self, train_path, dev_path, test_path, save = False):
+    def __init__(self, doc_idx, save = False):
         self._id_to_char = []
         self._char_to_id = {}
         self._pad = -1
@@ -230,47 +213,27 @@ class Alphabet(object):
         self._unk = self.index
         self.index += 1
 
-        with open(train_path, 'r', encoding='utf-8') as f1:
-            lines = f1.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
+        for doc_id in tqdm(doc_idx):
+            lines, _ = load_doc(doc_id)
+            for word in lines:
+                chars = list(word)
+                for char in chars:
+                    if char not in self._char_to_id:
+                        self._id_to_char.append(char)
+                        self._char_to_id[char] = self.index
+                        self.index += 1
 
-                    chars = list(word)
-                    for char in chars:
-                        if char not in self._char_to_id:
-                            self._id_to_char.append(char)
-                            self._char_to_id[char] = self.index
-                            self.index += 1
+        lines = us_dataset_names
+        for line in lines:
+            words = line.strip().split(' ')
+            for word in words:
+                chars = list(word)
+                for char in chars:
+                    if char not in self._char_to_id:
+                        self._id_to_char.append(char)
+                        self._char_to_id[char] = self.index
+                        self.index += 1
 
-        with open(dev_path, 'r', encoding='utf-8') as f2:
-            lines = f2.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
-
-                    chars = list(word)
-                    for char in chars:
-                        if char not in self._char_to_id:
-                            self._id_to_char.append(char)
-                            self._char_to_id[char] = self.index
-                            self.index += 1
-
-        with open(test_path, 'r', encoding='utf-8') as f3:
-            lines = f3.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    word = pairs[0]
-
-                    chars = list(word)
-                    for char in chars:
-                        if char not in self._char_to_id:
-                            self._id_to_char.append(char)
-                            self._char_to_id[char] = self.index
-                            self.index += 1
         if save:
             print('Saving Alphabet')
             self.save()

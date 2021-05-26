@@ -174,20 +174,23 @@ def _word2features(words, i):
             'dc': digit_count,
             'l': length,
             'w': word.lower(),
-            'u': word[0].isupper()
-        })#'pnc': np.mean(np.array([c in puncs for c in word]))
+            'u': word[0].isupper(),
+            'Au': word.isupper()
+        })
 
     if i > 0:
         word_other = words[i-1][0]
         features.update({
             '-1': word_other.lower(),
-            '-1u': word_other[0].isupper()
+            '-1u': word_other[0].isupper(),
+            '-1Au': word_other.isupper()
         })
         if i > 1:
             word_other = words[i-2][0]
             features.update({
                 '-2': word_other.lower(),
-                '-2u': word_other[0].isupper()
+                '-2u': word_other[0].isupper(),
+                '-2Au': word_other.isupper()
             })
             if i > 2:
                 word_other = words[i-3][0]
@@ -201,42 +204,49 @@ def _word2features(words, i):
                         '-4': word_other.lower(),
                         #'-4:word.isupper()': word_other.isupper()
                     })
-                    if i > 4:
-                        word_other = words[i-5][0]
-                        features.update({
-                            '-5': word_other.lower()
-                        })
-                        if i > 5:
-                            word_other = words[i-6][0]
-                            features.update({
-                                '-6': word_other.lower()
-                            })
 
     if i < len(words)-1:
         word_other = words[i+1][0]
         features.update({
             '+1':  word_other.lower(),
-            '+1u': word_other[0].isupper()
+            '+1u': word_other[0].isupper(),
+            '+1Au': word_other.isupper()
         })
         if i < len(words)-2:
             word_other = words[i+2][0]
             features.update({
                 '+2':  word_other.lower(),
-                '+2u': word_other[0].isupper()
+                '+2u': word_other[0].isupper(),
+                '+2Au': word_other.isupper()
             })
             if i < len(words)-3:
                 word_other = words[i+3][0]
                 features.update({
                     '+3':  word_other.lower(),
-                    #'+3:word.isupper()': word_other.isupper()
+                    '+3u': word_other[0].isupper(),
+                    '+3Au': word_other.isupper()
                 })
-                
                 if i < len(words)-4:
                     word_other = words[i+4][0]
                     features.update({
                         '+4':  word_other.lower(),
-                        #'+4:word.isupper()': word_other.isupper()
+                        '+4u': word_other[0].isupper(),
+                        '+4Au': word_other.isupper()
                     })
+                    if i < len(words)-5:
+                        word_other = words[i+5][0]
+                        features.update({
+                            '+5':  word_other.lower(),
+                            '+5u': word_other[0].isupper(),
+                            '+5Au': word_other.isupper()
+                        })
+                        if i < len(words)-6:
+                            word_other = words[i+6][0]
+                            features.update({
+                                '+6':  word_other.lower(),
+                                '+6u': word_other[0].isupper(),
+                                '+6Au': word_other.isupper()
+                            })
         
     return features
 
