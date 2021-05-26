@@ -29,7 +29,7 @@ import joblib
 flatten = lambda t: [item for sublist in t for item in sublist]
 
 def calc_score(y_true, y_pred):
-    return f1_score(y_true, y_pred, pos_label= '1', average= 'binary')
+    return f1_score(y_true, y_pred, labels= ['B', 'I'], average= 'weighted')
 
 class SklearnModel1:
     @modelutils.catch('SKELARNMODEL_INITERROR')

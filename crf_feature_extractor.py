@@ -8,6 +8,34 @@ import re
 #from nltk.tokenize import wordpunct_tokenize
 #logger = logging.getLogger('pipeline')
 
+def clean_text(txt):
+    return re.sub('[^A-Za-z0-9]+', ' ', str(txt).lower())
+
+digits = '0123456789'
+
+dataset_tokens = []
+
+dataset_names1 = list(pd.read_csv('data/kaggle_22k_datasets.csv').title.values)
+dataset_names1 = [clean_text(l).lower() for l in dataset_names1]
+dataset_names1 = ' '.join(dataset_names1)
+dataset_names1 = ''.join([c for c in dataset_names1 if c not in digits])
+dataset_tokens.extend(dataset_names1.split(' '))
+
+dataset_names1 = list(pd.read_csv('data/kaggle_800_datasets.csv').title.values)
+dataset_names1 = [clean_text(l).lower() for l in dataset_names1]
+dataset_names1 = ' '.join(dataset_names1)
+dataset_names1 = ''.join([c for c in dataset_names1 if c not in digits])
+dataset_tokens.extend(dataset_names1.split(' '))
+
+dataset_tokens = [t for t in dataset_tokens if len(t) > 2]
+dataset_tokens = set(dataset_tokens)
+
+from nltk.corpus import stopwords
+stop_words = stopwords.words('english')
+
+for t in ['of', 'the', 'and']:
+    stop_words.remove(t)
+
 _RE_COMBINE_WHITESPACE = re.compile(r"\s+")
 digits = '0123456789'
 
@@ -135,8 +163,9 @@ def _word2features(words, i):
     #     word = '#FIRSTNAME#'
     # elif islastname:
     #     word = '#LASTNAME#'
+    word_lower = word.lower()
 
-    digit_count = len([c in digits for c in word])
+    digit_count = len([c for c in word if c in digits])
     length = len(word)
     assert length > 0, "All tokens must have length > 0"
 
@@ -173,79 +202,101 @@ def _word2features(words, i):
             'dg': digit_count / length,
             'dc': digit_count,
             'l': length,
-            'w': word.lower(),
+            #'w': word,
             'u': word[0].isupper(),
-            'Au': word.isupper()
+            'Au': word.isupper(),
+            's': word in stop_words,
+            'uc': len([c for c in word if c.isupper()]),
+            'da': word_lower in dataset_tokens
         })
 
     if i > 0:
         word_other = words[i-1][0]
         features.update({
-            '-1': word_other.lower(),
+            #'-1': word_other.lower(),
             '-1u': word_other[0].isupper(),
-            '-1Au': word_other.isupper()
+            '-1Au': word_other.isupper(),
+            '-1s': word_other in stop_words,
+            '-1uc': len([c for c in word_other if c.isupper()])
         })
         if i > 1:
             word_other = words[i-2][0]
             features.update({
-                '-2': word_other.lower(),
                 '-2u': word_other[0].isupper(),
-                '-2Au': word_other.isupper()
+                '-2Au': word_other.isupper(),
+                '-2s': word_other in stop_words
             })
             if i > 2:
                 word_other = words[i-3][0]
                 features.update({
-                    '-3': word_other.lower(),
-                    #'-3:word.isupper()': word_other.isupper()
+                    '-3u': word_other[0].isupper(),
+                    '-3Au': word_other.isupper(),
+                    '-3s': word_other in stop_words
                 })
                 if i > 3:
                     word_other = words[i-4][0]
                     features.update({
-                        '-4': word_other.lower(),
-                        #'-4:word.isupper()': word_other.isupper()
+                        '-4u': word_other[0].isupper(),
+                        '-4Au': word_other.isupper(),
+                        '-4s': word_other in stop_words
                     })
 
     if i < len(words)-1:
         word_other = words[i+1][0]
         features.update({
-            '+1':  word_other.lower(),
+            #'+1':  word_other.lower(),
             '+1u': word_other[0].isupper(),
-            '+1Au': word_other.isupper()
+            '+1Au': word_other.isupper(),
+            '+1s': word_other in stop_words,
+            '+1uc': len([c for c in word_other if c.isupper()]),
+            '+1da': word_other.lower() in dataset_tokens
         })
         if i < len(words)-2:
             word_other = words[i+2][0]
             features.update({
-                '+2':  word_other.lower(),
+                #'+2':  word_other.lower(),
                 '+2u': word_other[0].isupper(),
-                '+2Au': word_other.isupper()
+                '+2Au': word_other.isupper(),
+                '+2s': word_other in stop_words,
+                '+2uc': len([c for c in word_other if c.isupper()]),
+                '+2da': word_other.lower() in dataset_tokens
             })
             if i < len(words)-3:
                 word_other = words[i+3][0]
                 features.update({
-                    '+3':  word_other.lower(),
+                    #'+3':  word_other.lower(),
                     '+3u': word_other[0].isupper(),
-                    '+3Au': word_other.isupper()
+                    '+3Au': word_other.isupper(),
+                    '+3s': word_other in stop_words,
+                    '+3uc': len([c for c in word_other if c.isupper()]),
+                    '+3da': word_other.lower() in dataset_tokens
                 })
                 if i < len(words)-4:
                     word_other = words[i+4][0]
                     features.update({
-                        '+4':  word_other.lower(),
+                        #'+4':  word_other.lower(),
                         '+4u': word_other[0].isupper(),
-                        '+4Au': word_other.isupper()
+                        '+4Au': word_other.isupper(),
+                        '+4s': word_other in stop_words,
+                        '+4uc': len([c for c in word_other if c.isupper()])
                     })
                     if i < len(words)-5:
                         word_other = words[i+5][0]
                         features.update({
-                            '+5':  word_other.lower(),
+                            #'+5':  word_other.lower(),
                             '+5u': word_other[0].isupper(),
-                            '+5Au': word_other.isupper()
+                            '+5Au': word_other.isupper(),
+                            '+5s': word_other in stop_words,
+                            '+5uc': len([c for c in word_other if c.isupper()])
                         })
                         if i < len(words)-6:
                             word_other = words[i+6][0]
                             features.update({
-                                '+6':  word_other.lower(),
+                                #'+6':  word_other.lower(),
                                 '+6u': word_other[0].isupper(),
-                                '+6Au': word_other.isupper()
+                                '+6Au': word_other.isupper(),
+                                '+6s': word_other in stop_words,
+                                '+6uc': len([c for c in word_other if c.isupper()])
                             })
         
     return features
