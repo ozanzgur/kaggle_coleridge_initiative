@@ -32,7 +32,7 @@ def replace_target(x, lst):
         new_x['TARGET'] = '1'
         lst.append(new_x)
 
-def load_doc(doc_id, augment_chance = 0.0):
+def load_doc_df(doc_id, augment_chance = 0.0):
     doc_path = f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data\processed_data/{doc_id}.csv'
     doc_df = pd.read_csv(doc_path)
     doc_df['TARGET'] = doc_df['TARGET'].astype('str')
@@ -97,24 +97,32 @@ class WordVocabulary(object):
         self.index += 1
 
         for doc_id in tqdm(doc_idx):
-            lines, _ = load_doc(doc_id)
-            for word in lines:
-                if self.number_normalized:
-                    word = normalize_word(word)
-                if word not in self._word_to_id:
-                    self._id_to_word.append(word)
-                    self._word_to_id[word] = self.index
-                    self.index += 1
+            with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/crf_x_data/{doc_id}.pkl', 'rb') as f:
+                doc_X = pickle.load(f)
+                lines_list = doc_X
+
+            for lines in lines_list:
+                for word in lines:
+                    if self.number_normalized:
+                        word = normalize_word(word)
+
+                    # Convert to lowercase
+                    word_lower = word.lower()
+                    if word_lower not in self._word_to_id:
+                        self._id_to_word.append(word_lower)
+                        self._word_to_id[word_lower] = self.index
+                        self.index += 1
 
         lines = us_dataset_names
         for line in lines:
             words = line.strip().split(' ')
             for word in words:
+                word_lower = word.lower()
                 if self.number_normalized:
-                    word = normalize_word(word)
-                if word not in self._word_to_id:
-                    self._id_to_word.append(word)
-                    self._word_to_id[word] = self.index
+                    word_lower = normalize_word(word_lower)
+                if word_lower not in self._word_to_id:
+                    self._id_to_word.append(word_lower)
+                    self._word_to_id[word_lower] = self.index
                     self.index += 1
         
         if save:
@@ -131,8 +139,9 @@ class WordVocabulary(object):
         return len(self._id_to_word)
 
     def word_to_id(self, word):
-        if word in self._word_to_id:
-            return self._word_to_id[word]
+        word_lower = word.lower()
+        if word_lower in self._word_to_id:
+            return self._word_to_id[word_lower]
         return self.unk()
 
     def id_to_word(self, cur_id):
@@ -149,7 +158,7 @@ class WordVocabulary(object):
 
 
 class LabelVocabulary(object):
-    def __init__(self, filename, save = False):
+    def __init__(self, doc_idx, save = False):
         self._id_to_label = []
         self._label_to_id = {}
         self._pad = -1
@@ -160,17 +169,17 @@ class LabelVocabulary(object):
         self._pad = self.index
         self.index += 1
 
-        with open(filename, 'r', encoding='utf-8') as f1:
-            lines = f1.readlines()
-            for line in lines:
-                if len(line) > 2:
-                    pairs = line.strip().split()
-                    label = pairs[-1]
+        for doc_id in tqdm(doc_idx):
+            with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/crf_y_data/{doc_id}.pkl', 'rb') as f:
+                doc_y = pickle.load(f)
+                lines_list = doc_y
+                for lines in lines_list:
+                    for label in lines:
 
-                    if label not in self._label_to_id:
-                        self._id_to_label.append(label)
-                        self._label_to_id[label] = self.index
-                        self.index += 1
+                        if label not in self._label_to_id:
+                            self._id_to_label.append(label)
+                            self._label_to_id[label] = self.index
+                            self.index += 1
 
         if save:
             print('Saving LabelVocabulary')
@@ -214,14 +223,18 @@ class Alphabet(object):
         self.index += 1
 
         for doc_id in tqdm(doc_idx):
-            lines, _ = load_doc(doc_id)
-            for word in lines:
-                chars = list(word)
-                for char in chars:
-                    if char not in self._char_to_id:
-                        self._id_to_char.append(char)
-                        self._char_to_id[char] = self.index
-                        self.index += 1
+            with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/crf_x_data/{doc_id}.pkl', 'rb') as f:
+                doc_X = pickle.load(f)
+                lines_list = doc_X
+
+            for lines in lines_list:
+                for word in lines:
+                    chars = list(word)
+                    for char in chars:
+                        if char not in self._char_to_id:
+                            self._id_to_char.append(char)
+                            self._char_to_id[char] = self.index
+                            self.index += 1
 
         lines = us_dataset_names
         for line in lines:
@@ -259,9 +272,9 @@ class Alphabet(object):
         return self._char_to_id.items()
 
     def save(self):
-        with open('data\id_to_char.pickle', 'wb') as handle:
+        with open('C:\projects\personal\kaggle\kaggle_coleridge_initiative\data\id_to_char.pickle', 'wb') as handle:
             pickle.dump(self._id_to_char, handle)
-        with open('data\char_to_id.pickle', 'wb') as handle:
+        with open('C:\projects\personal\kaggle\kaggle_coleridge_initiative\data\char_to_id.pickle', 'wb') as handle:
             pickle.dump(self._char_to_id, handle)
 
 

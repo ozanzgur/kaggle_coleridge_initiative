@@ -12,11 +12,18 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from train import train_model, evaluate
 import random
+import pickle
 
 seed_num = 42
 random.seed(seed_num)
 torch.manual_seed(seed_num)
 np.random.seed(seed_num)
+
+with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/train_idx.pkl', 'rb') as f:
+    train_idx = pickle.load(f)
+
+with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/val_idx.pkl', 'rb') as f:
+    val_idx = pickle.load(f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Named Entity Recognition Model')
@@ -32,7 +39,7 @@ if __name__ == '__main__':
     parser.add_argument('--optimizer', default='sgd')
     parser.add_argument('--lr', type=float, default=0.015)
     parser.add_argument('--feature_extractor', choices=['lstm', 'cnn'], default='lstm')
-    parser.add_argument('--use_char', type=bool, default=False)
+    parser.add_argument('--use_char', type=bool, default=True)
     parser.add_argument('--train_path', default='data/train')
     parser.add_argument('--dev_path', default='data/val')
     parser.add_argument('--test_path', default='data/val')
@@ -44,13 +51,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Get filenames
-    train_example_names = [fn.split('.')[0] for fn in os.listdir('C:\projects\personal\kaggle\kaggle_coleridge_initiative\data\processed_data')]
+    """train_example_names = [fn.split('.')[0] for fn in os.listdir('C:\projects\personal\kaggle\kaggle_coleridge_initiative\data\processed_data')]
     print(f'# train examples : {len(train_example_names)}')
     docIdx = train_example_names.copy()
     random.seed(42)
-    random.shuffle(docIdx)
+    random.shuffle(docIdx)"""
 
-    train_ratio = 0.85
+    """train_ratio = 0.85
     n_train = int(len(docIdx) * train_ratio)
     n_val = len(docIdx) - n_train
 
@@ -62,7 +69,7 @@ if __name__ == '__main__':
     for _ in range(args.n_train_repeat):
         train_idx_rep.extend(train_idx)
 
-    train_idx = train_idx_rep
+    train_idx = train_idx_rep"""
 
     ##########################
 
@@ -88,9 +95,9 @@ if __name__ == '__main__':
     model_name = args.savedir + '/' + args.feature_extractor + str(args.use_char) + str(args.use_crf)
 
     print('Preparing vocabularies...')
-    word_vocab = WordVocabulary(docIdx, args.number_normalized, args.save_vocabularies)
-    label_vocab = LabelVocabulary(args.train_path, args.save_vocabularies)
-    alphabet = Alphabet(docIdx, args.save_vocabularies)
+    word_vocab = WordVocabulary(train_idx, args.number_normalized, args.save_vocabularies)
+    label_vocab = LabelVocabulary(train_idx[:10], args.save_vocabularies)
+    alphabet = Alphabet(train_idx, args.save_vocabularies)
 
     print('Building pretrain embedding...')
     emb_begin = time.time()
