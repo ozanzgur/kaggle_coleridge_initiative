@@ -18,11 +18,25 @@ class MyLoaderDataset(Dataset):
         for doc_id in filenames:
             with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/crf_x_data/{doc_id}.pkl', 'rb') as f:
                 doc_X = pickle.load(f)
-                self.sentences.extend(doc_X)
 
             with open(f'C:\projects\personal\kaggle\kaggle_coleridge_initiative\data/crf_y_data/{doc_id}.pkl', 'rb') as f:
                 doc_y = pickle.load(f)
-                self.labels.extend(doc_y)
+
+            assert len(doc_X) == len(doc_y)
+            for sent, label in zip(doc_X, doc_y):
+                new_label = []
+                new_sentence = []
+
+                for w, l in zip(sent, label):
+                    if len(w) > 0:
+                        new_sentence.append(w)
+                        new_label.append(l)
+                    else:
+                        print('Ecountered empty token, removing along with its label.')
+
+                if len(new_sentence) > 0:
+                    self.sentences.append(new_sentence)
+                    self.labels.append(new_label)
 
         assert len(self.labels) == len(self.sentences)
 
@@ -37,7 +51,7 @@ class MyLoaderDataset(Dataset):
         text = self.sentences[item]
         label = self.labels[item]
 
-        text = reversed(text)
+        text = list(reversed(text))
         label = reversed(label)
 
         seq_char_list = list()

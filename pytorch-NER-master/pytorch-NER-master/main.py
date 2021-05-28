@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', type=float, default=0.5)
     parser.add_argument('--pretrain_embed_path', default='data/glove.6B.100d.txt')
     parser.add_argument('--savedir', default='data/model/')
-    parser.add_argument('--batch_size', type=int, default=15)
+    parser.add_argument('--batch_size', type=int, default=6)
     parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument('--optimizer', default='sgd')
     parser.add_argument('--lr', type=float, default=0.015)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('--patience', type=int, default=10)
     parser.add_argument('--number_normalized', type=bool, default=True)
     parser.add_argument('--use_crf', type=bool, default=True)
-    parser.add_argument('--save_vocabularies', type=bool, default=False)
+    parser.add_argument('--save_vocabularies', type=bool, default=True)
     parser.add_argument('--n_train_repeat', type=int, default=1)
     args = parser.parse_args()
 
