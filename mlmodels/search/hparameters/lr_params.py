@@ -19,15 +19,16 @@ search_space = dict(
     #class_weight =  hp.choice('class_weight', ['balanced', None]),
     #solver =  hp.choice('solver', ['saga']), # 'newton-cg', 'lbfgs', 'sag'
     tol = hp.loguniform('tol', -7, 1)
-),
+)
 search_fixed = dict(     
     max_iter = 500,
     verbose = 0,
     n_jobs = -1,
-    penalty = 'l1',
+    class_weight = 'balanced',
+    penalty = 'l2',
     solver = 'lbfgs',
     multi_class = 'auto',
     random_state=42,
     minimize_metric = False,
-    model = LogisticRegression
+    model_class = LogisticRegression
 )

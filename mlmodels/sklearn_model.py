@@ -74,8 +74,9 @@ class SklearnModel1:
             return {'metric': 0.0}
         
         y_pred = self.model.predict(X_val)
-        metric = calc_score(flatten(y_val), flatten(y_pred))
-        #metric = f1_score(flatten(y_val), flatten(y_pred), average='binary', pos_label = '1')
+        #metric = calc_score(flatten(y_val), flatten(y_pred))
+        metric = f1_score(y_val, y_pred, average='binary', pos_label = 1)
+        #metric = metrics.accuracy_score(y_val, y_pred)
         #self.model.score(X_val, y_val)
         
         logger.info(f"Metric: {metric}")
