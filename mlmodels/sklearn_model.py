@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger('pipeline')
 
 from sklearn import metrics
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, fbeta_score
 import joblib
 flatten = lambda t: [item for sublist in t for item in sublist]
 
@@ -75,7 +75,7 @@ class SklearnModel1:
         
         y_pred = self.model.predict(X_val)
         #metric = calc_score(flatten(y_val), flatten(y_pred))
-        metric = f1_score(y_val, y_pred, average='binary', pos_label = 1)
+        metric = fbeta_score(y_val, y_pred, beta = 0.5, average='binary', pos_label = 1)
         #metric = metrics.accuracy_score(y_val, y_pred)
         #self.model.score(X_val, y_val)
         
