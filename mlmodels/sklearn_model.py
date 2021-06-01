@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger('pipeline')
 
 from sklearn import metrics
-from sklearn.metrics import f1_score, fbeta_score
+from sklearn.metrics import f1_score, fbeta_score, recall_score
 import joblib
 flatten = lambda t: [item for sublist in t for item in sublist]
 
@@ -74,8 +74,10 @@ class SklearnModel1:
             return {'metric': 0.0}
         
         y_pred = self.model.predict(X_val)
+
         #metric = calc_score(flatten(y_val), flatten(y_pred))
-        metric = fbeta_score(y_val, y_pred, beta = 0.5, average='binary', pos_label = 1)
+        #metric = fbeta_score(y_val, y_pred, beta = 2.0, average='binary', pos_label = 1)
+        metric = recall_score(y_val, y_pred, pos_label = 1)
         #metric = metrics.accuracy_score(y_val, y_pred)
         #self.model.score(X_val, y_val)
         
@@ -95,7 +97,7 @@ class SklearnModel1:
             logger.info(f'Model input: {x}')
 
         for x_example in x:
-            x_example.update({'output': self.model.predict(x_example['output'])})
+            x_example.update({'output': self.model.predict_proba(x_example['output'])})
         return x
 
     @modelutils.catch('SKELARNMODEL_LOADERROR')
