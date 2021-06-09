@@ -73,7 +73,10 @@ class SklearnModel1:
             logger.info(f"SVM error, returning 0.")
             return {'metric': 0.0}
         
-        y_pred = self.model.predict(X_val)
+        y_pred = self.model.predict_proba(X_val)
+        th = y_train.mean() * 0.75
+        y_pred = y_pred[:, 1] > th
+        print(f'sklearn model threshold: {th}')
 
         #metric = calc_score(flatten(y_val), flatten(y_pred))
         #metric = fbeta_score(y_val, y_pred, beta = 2.0, average='binary', pos_label = 1)
@@ -81,8 +84,9 @@ class SklearnModel1:
         #metric = metrics.accuracy_score(y_val, y_pred)
         #self.model.score(X_val, y_val)
         
+        self.th = th
         logger.info(f"Metric: {metric}")
-        return {'metric': metric}
+        return {'metric': metric, 'thresh': th}
     
     @modelutils.catch('SKELARNMODEL_TESTERROR')
     def test(self, x):
